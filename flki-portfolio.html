@@ -106,6 +106,13 @@
   .bg-camp{background:linear-gradient(135deg,#4D65FF,#111112)}
   .bg-motion{background:linear-gradient(135deg,#FF4D00,#111112)}
   .bg-ux{background:linear-gradient(135deg,#3DDC6B,#111112)}
+  /* cases com imagem de capa */
+  .work.has-img{background-size:cover;background-position:center}
+  .work.has-img::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(17,17,18,0) 42%,rgba(17,17,18,.96) 64%)}
+  .work.has-img>*{position:relative}
+  .work.has-img .tag{position:absolute}
+  .work.bg-maraz{background:#fff url(assets/maraz-20-anos.png) center 22%/auto 42% no-repeat}
+  .bg-pand{background-image:url(assets/pandherya-s7.jpg)}
 
   .empty{max-width:1120px;margin:0 auto;padding:0 28px 40px;color:var(--ink-500);font-size:15px;display:none}
 
@@ -163,6 +170,9 @@
 
 <!-- ===== GALERIA ===== -->
 <div class="gallery" id="gallery">
+  <a href="case-maraz-20-anos.html" class="work has-img bg-maraz" data-cat="brand"><span class="pill pill-lemon tag">Branding</span><span class="meta">MARAZ SEGUROS · 2026</span><h4>Logo comemorativo de 20 anos 🎉</h4><span class="go">Ver case →</span></a>
+  <a href="case-pandherya.html" class="work has-img bg-pand" data-cat="ux"><span class="pill pill-lemon tag">Site</span><span class="meta">PANDHERYA · 2026</span><h4>Compêndio de um servidor de Valheim ⚔️</h4><span class="go">Ver case →</span></a>
+  <a href="case-navalha-club.html" class="work bg-ux" data-cat="ux"><span class="pill pill-lemon tag">App</span><span class="meta">NAVALHA CLUB · 2025</span><h4>App da barbearia 💈</h4><span class="go">Ver case →</span></a>
   <a href="flki-case.html" class="work bg-game" data-cat="game"><span class="pill pill-lemon tag">Game</span><span class="meta">NEON RUNNER · 2025</span><h4>Endless runner neon 🏃‍♂️</h4><span class="go">Ver case →</span></a>
   <a href="flki-case.html" class="work bg-brand" data-cat="brand"><span class="pill pill-lemon tag">Branding</span><span class="meta">KOMBO BURGER · 2025</span><h4>Rebrand raiz da rede 🍔</h4><span class="go">Ver case →</span></a>
   <a href="flki-case.html" class="work bg-camp" data-cat="camp"><span class="pill pill-lemon tag">Campanha</span><span class="meta">LEVEL UP FEST · 2024</span><h4>Festival gamer da cidade 🎪</h4><span class="go">Ver case →</span></a>

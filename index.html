@@ -754,6 +754,13 @@
       left: 20px
     }
 
+    .work.has-img { background-size: cover; background-position: center }
+    .work.has-img::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(17,17,18,0) 42%, rgba(17,17,18,.96) 64%) }
+    .work.has-img > * { position: relative }
+    .work.has-img .tag { position: absolute }
+    .work.bg-maraz { background: #fff url(assets/maraz-20-anos.png) center 14% / 42% auto no-repeat }
+    .work.bg-pand { background-image: url(assets/pandherya-s7.jpg) }
+
     /* ====== PROCESS ====== */
     .steps {
       display: grid;
@@ -1034,13 +1041,11 @@
             2025</span>
           <h4>Barbearia Navalha Club 💈</h4>
         </a>
-        <a href="flki-portfolio.html" class="work b"><span class="pill pill-lemon tag">Branding</span><span>KOMBO BURGER
-            · 2025</span>
-          <h4>Rebrand raiz da rede 🍔</h4>
+        <a href="case-maraz-20-anos.html" class="work b has-img bg-maraz"><span class="pill pill-lemon tag">Branding</span><span>MARAZ SEGUROS · 2026</span>
+          <h4>Logo 20 anos 🎉</h4>
         </a>
-        <a href="flki-portfolio.html" class="work c"><span class="pill pill-lemon tag">Campanha</span><span>LEVEL UP
-            FEST · 2024</span>
-          <h4>Festival gamer da cidade 🎪</h4>
+        <a href="case-pandherya.html" class="work c has-img bg-pand"><span class="pill pill-lemon tag">Site</span><span>PANDHERYA · 2026</span>
+          <h4>Wiki de Valheim ⚔️</h4>
         </a>
         <a href="flki-portfolio.html" class="work d"><span class="pill pill-lemon tag">Motion</span><span>PIXEL BANK ·
             2024</span>
