@@ -14,12 +14,15 @@ Sem `url` e `key` em `config.js`, o app roda em **modo demonstração**: cliente
 
 Com o Supabase configurado, vira **modo real**: reservas no banco, painel com login.
 
-## Ligar ao Supabase
+## Banco (Supabase)
 
-1. Crie um projeto (região `sa-east-1`, São Paulo).
-2. Rode `supabase/schema.sql` no SQL Editor. Ele cria as tabelas, as regras de acesso (RLS), as funções `criar_reserva` e `horarios_ocupados` e os dados da JARL.
-3. Em Authentication > Users, crie o usuário do barbeiro e vincule com o `insert into public.membros` no fim do schema.
-4. Preencha `config.js` com a URL do projeto e a chave publishable.
+O banco fica no projeto **Pandherya**, no schema separado `jarl` (o plano grátis só permite 2 projetos ativos).
+
+1. `supabase/schema.sql` já foi aplicado: tabelas, RLS, funções `criar_reserva` e `horarios_ocupados` e dados da JARL.
+2. **Pendente:** em Settings > Data API > Exposed schemas, adicionar `jarl`. Até isso, o app cai sozinho no modo demonstração.
+3. Para o painel: criar o usuário do barbeiro em Authentication > Users e vinculá-lo com o `insert into jarl.membros` no fim do schema.
+
+Para mudar para um projeto próprio no futuro, rode o mesmo `schema.sql` lá e troque `url` e `key` em `config.js`.
 
 ## Segurança
 

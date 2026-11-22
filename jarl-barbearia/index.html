@@ -232,8 +232,8 @@ td.n{text-align:right;white-space:nowrap}
 <script>
 {
 const CFG=window.JARL_CONFIG||{};
-const ONLINE=!!(CFG.url&&CFG.key&&window.supabase);
-const sb=ONLINE?window.supabase.createClient(CFG.url,CFG.key):null;
+let ONLINE=!!(CFG.url&&CFG.key&&window.supabase);
+const sb=ONLINE?window.supabase.createClient(CFG.url,CFG.key,{db:{schema:CFG.schema||'jarl'}}):null;
 let SVC=[
  {id:'guerreiro',n:'Corte do Guerreiro',d:'Corte na máquina e tesoura, lavagem e finalização',min:40,p:50},
  {id:'barba',n:'Barba do Jarl',d:'Barba com toalha quente, navalha e óleo',min:30,p:40},
@@ -411,10 +411,9 @@ window.addEventListener('hashchange',route);
 async function boot(){
  $('modo').textContent=ONLINE?'Conectado ao banco: reservas reais.':'Modo demonstração: horários e clientes de exemplo, salvos só neste navegador.';
  if(ONLINE){
-  try{await loadShop()}catch(e){$('modo').textContent='Não foi possível conectar ao banco. '+e.message;return}
- }else{
-  $('login').hidden=true;$('sair').hidden=true;$('painelbody').hidden=false;seedDemo();
+  try{await loadShop()}catch(e){ONLINE=false;$('modo').textContent='Banco indisponível agora; rodando em demonstração.';console.warn(e)}
  }
+ if(!ONLINE){$('login').hidden=true;$('sair').hidden=true;$('painelbody').hidden=false;seedDemo()}
  pickDefaults();drawSvcTab();route();
 }
 boot();
