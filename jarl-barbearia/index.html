@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JARL Barbearia MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Grenze:wght@600;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday app with a saga flavour: firm, warm, a bit rough
+   IDEA a carved longship shield and a ledger of the hall: runes, iron, bone, blood-red seal
+   PICTURE drakkar prow cutting a fjord at dusk, as a 30% band over the booking flow
+   COLOUR fjord slate #142229 / bone #efe6d6, iron ink, blood red #b3261e seal, brass #c49a52 detail
+   TYPE Grenze (carved display) + Barlow (clean text)
+   LAYOUT tabs on top; booking in one calm column beside a sticky summary on laptop, stacked on phone */
+:root{color-scheme:light dark;--bg:light-dark(#efe6d6,#0f1a20);--panel:light-dark(#f8f2e7,#16252d);--ink:light-dark(#1a1714,#efe6d6);--mute:light-dark(#5c544a,#a9b4b4);--line:light-dark(#d4c7b0,#2b3d46);--red:light-dark(#a4221b,#d8473c);--brass:light-dark(#8a6a2c,#c49a52);--fjord:#142229}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:Grenze,Georgia,serif;line-height:1.05;letter-spacing:-.01em;margin:0}
+h1{font-size:clamp(34px,5vw,48px)}
+h2{font-size:28px;margin-bottom:12px}
+h3{font-size:20px}
+.band{padding-block:clamp(24px,4vw,48px);padding-inline:max(5vw,16px)}
+.wrap{max-width:1180px;margin:0 auto}
+header{background:var(--fjord);color:#efe6d6}
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px max(5vw,16px)}
+.logo{display:flex;align-items:center;gap:10px;font-family:Grenze,serif;font-size:26px;font-weight:800}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav a{color:#efe6d6;text-decoration:none;padding:10px 14px;border-radius:6px;font-weight:600;min-height:44px;display:inline-flex;align-items:center}
+nav a[aria-current=page]{background:#b3261e}
+nav a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.hero{position:relative;height:clamp(170px,26vw,260px);overflow:hidden}
+.hero svg{position:absolute;inset:0;width:100%;height:100%}
+.hero .cap{position:absolute;left:max(5vw,16px);bottom:18px;color:#efe6d6;max-width:30ch}
+.hero .cap p{margin:6px 0 0;color:#cdd6d2}
+.view{display:none}.view.on{display:block}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;align-items:start}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+.step h3{display:flex;gap:10px;align-items:baseline;margin-bottom:12px}
+.rune{font-family:Grenze,serif;color:var(--red);font-size:22px}
+.opts{display:grid;gap:8px}
+.opt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;text-align:left;width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font:inherit;cursor:pointer;min-height:44px}
+.opt small{color:var(--mute);grid-column:1}
+.opt b{white-space:nowrap}
+.opt[aria-pressed=true]{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.barbers{grid-template-columns:repeat(auto-fit,minmax(9.5em,1fr))}
+.barbers .opt{grid-template-columns:44px minmax(0,1fr)}
+.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:Grenze,serif;font-size:22px;color:#efe6d6;grid-row:span 2}
+.days{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.day{flex:none;width:64px;text-align:center;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 0;font:inherit;cursor:pointer}
+.day b{display:block;font-size:20px}
+.day[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}
+.day:disabled{opacity:.4;cursor:not-allowed}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;margin-top:12px}
+.slot{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px 0;font:600 16px Barlow,sans-serif;cursor:pointer;min-height:44px;font-variant-numeric:tabular-nums}
+.slot[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.slot:disabled{text-decoration:line-through;opacity:.38;cursor:not-allowed}
+label{display:block;font-weight:600;margin:10px 0 4px}
+input{width:100%;font:16px Barlow,sans-serif;padding:11px 12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.btn{background:var(--red);color:#fff;border:0;border-radius:8px;padding:13px 18px;font:700 17px Barlow,sans-serif;cursor:pointer;min-height:48px;width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 12px;font:600 14px Barlow,sans-serif;cursor:pointer;min-height:40px}
+.sum{position:sticky;top:16px;background:var(--fjord);color:#efe6d6;border-radius:10px;padding:20px}
+.sum dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;margin:14px 0}
+.sum dt{color:#a9b4b4}.sum dd{margin:0;font-weight:600}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid #2b3d46;padding-top:12px;margin-bottom:14px}
+.total b{font-family:Grenze,serif;font-size:34px;white-space:nowrap}
+.runes{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.runes span{width:28px;height:34px;display:grid;place-items:center;border:1px solid #c49a52;border-radius:4px;font-size:18px;color:#c49a52}
+.runes span.f{background:#c49a52;color:var(--fjord)}
+.note{font-size:13px;color:var(--mute);margin-top:10px}
+.ok{background:var(--panel);border:2px solid var(--red);border-radius:12px;padding:22px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(10em,1fr));gap:12px;margin:18px 0}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.stat b{display:block;font-family:Grenze,serif;font-size:36px;line-height:1.1;white-space:nowrap}
+.stat span{color:var(--mute);font-size:14px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.agenda{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.agenda li{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:4px 16px;padding:14px 0;border-bottom:1px solid var(--line);align-items:center}
+.agenda .t{font-family:Grenze,serif;font-size:28px;font-variant-numeric:tabular-nums}
+.agenda .who small{display:block;color:var(--mute)}
+.agenda .act{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.agenda li.done .t,.agenda li.done .who{opacity:.45}
+.agenda li.cancel .who b{text-decoration:line-through}
+.tag{font-size:13px;font-weight:700;border-radius:4px;padding:2px 8px;white-space:nowrap}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+.names li{margin-bottom:10px}.names b{font-family:Grenze,serif;font-size:22px}
+.sw{display:grid;grid-template-columns:repeat(auto-fit,minmax(8em,1fr));gap:10px}
+.sw div{border-radius:8px;height:96px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;font-size:14px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%}
+td,th{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:14px;color:var(--mute);font-weight:600}
+td.n{text-align:right;white-space:nowrap}
+.scroll{overflow-x:auto}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}.sum{position:static}}
+@media(max-width:600px){.agenda li{grid-template-columns:60px minmax(0,1fr)}.agenda .act{grid-column:1/-1;justify-content:flex-start}.top{justify-content:center}}
+@media(prefers-reduced-motion:no-preference){.prow{animation:bob 5s ease-in-out infinite}@keyframes bob{50%{transform:translateY(4px) rotate(-.6deg)}}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="logo">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><path d="M17 2 31 9v9c0 7-6 12-14 14C9 30 3 25 3 18V9z" fill="#b3261e"/><path d="M17 8v18M11 12l6 5 6-5M11 20l6-4 6 4" stroke="#efe6d6" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      JARL
+    </div>
+    <nav>
+      <a href="#agendar">Agendar</a>
+      <a href="#painel">Painel do barbeiro</a>
+      <a href="#marca">Marca e nomes</a>
+    </nav>
+  </div>
+  <div class="hero">
+    <svg viewBox="0 0 1200 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d3440"/><stop offset="1" stop-color="#7a4a3a"/></linearGradient>
+        <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#25414c"/><stop offset="1" stop-color="#0f1a20"/></linearGradient>
+      </defs>
+      <rect width="1200" height="260" fill="url(#sky)"/>
+      <circle cx="880" cy="170" r="54" fill="#d98a4e" opacity=".85"/>
+      <path d="M0 190 140 110 230 160 340 80 470 170 560 120 680 185 0 200z" fill="#2a3f48"/>
+      <path d="M520 200 700 120 790 165 930 95 1060 160 1200 120V210H520z" fill="#22363f"/>
+      <path d="M0 175 90 140 200 180 300 150 420 190H0z" fill="#1b2c34"/>
+      <rect y="190" width="1200" height="70" fill="url(#sea)"/>
+      <g class="prow" transform="translate(700 92)">
+        <path d="M-40 140 C40 158 220 158 300 132 L322 92 C300 110 250 118 200 120 L-10 120 C-40 108 -60 80 -50 40 C-40 10 -10 4 0 22 C8 36 -6 46 -16 40" fill="#4a2c20" stroke="#2a170f" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M-10 120 L200 120 C250 118 300 110 322 92 L316 104 C280 126 230 132 200 133 L-20 133z" fill="#6b3e2a"/>
+        <g fill="#b3261e" stroke="#efe6d6" stroke-width="3"><circle cx="30" cy="122" r="11"/><circle cx="68" cy="124" r="11"/><circle cx="106" cy="125" r="11"/><circle cx="144" cy="125" r="11"/><circle cx="182" cy="124" r="11"/><circle cx="220" cy="121" r="11"/></g>
+        <path d="M122 120V-60" stroke="#2a170f" stroke-width="7"/>
+        <path d="M40 -46 H204 L214 94 H30z" fill="#efe6d6"/>
+        <g fill="#b3261e"><path d="M48 -46h22l-6 140H38z"/><path d="M95 -46h22l-1 140H92z"/><path d="M144 -46h22l7 140h-22z"/><path d="M190 -46h14l10 140h-14z"/></g>
+        <circle cx="-20" cy="28" r="4" fill="#efe6d6"/>
+      </g>
+      <path d="M0 214 Q300 206 600 216 T1200 212" stroke="#3d5a66" stroke-width="2" fill="none"/>
+      <path d="M0 236 Q300 228 600 238 T1200 232" stroke="#2b4550" stroke-width="2" fill="none"/>
+    </svg>
+    <div class="cap">
+      <h1>Seu lugar no salão do Jarl</h1>
+      <p>Escolha o ritual, o barbeiro e o horário. Leva um minuto.</p>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="view band" id="v-agendar">
+  <div class="wrap grid">
+    <div id="flow">
+      <div class="step"><h3><span class="rune">ᚠ</span>Escolha o ritual</h3><div class="opts" id="svcs"></div></div>
+      <div class="step"><h3><span class="rune">ᛒ</span>Escolha o barbeiro</h3><div class="opts barbers" id="barbs"></div></div>
+      <div class="step"><h3><span class="rune">ᛞ</span>Dia e horário</h3><div class="days" id="days"></div><div class="slots" id="slots"></div><p class="note" id="slotnote"></p></div>
+      <div class="step"><h3><span class="rune">ᚱ</span>Seus dados</h3>
+        <form id="form" novalidate>
+          <label for="nome">Nome</label><input id="nome" autocomplete="name" placeholder="Como te chamamos no salão">
+          <label for="zap">WhatsApp</label><input id="zap" inputmode="tel" autocomplete="tel" placeholder="(11) 95555-0000">
+        </form>
+      </div>
+    </div>
+    <aside class="sum" aria-live="polite">
+      <h2>Sua reserva</h2>
+      <dl id="sumdl"></dl>
+      <div class="total"><span>Total</span><b id="tot">R$ 0</b></div>
+      <button class="btn" id="go" disabled>Confirmar reserva</button>
+      <p id="err" role="alert" style="color:#ff8a80;margin:8px 0 0;font-weight:600"></p>
+      <p style="margin:16px 0 0;font-weight:600">Cartão de runas</p>
+      <div class="runes" id="runes"></div>
+      <p class="note" style="color:#a9b4b4">A cada visita, uma runa. Com 10, o próximo corte é por conta do Jarl.</p>
+      <p class="note" id="modo" style="color:#a9b4b4;border-top:1px solid #2b3d46;padding-top:10px"></p>
+    </aside>
+  </div>
+</section>
+
+<section class="view band" id="v-ok">
+  <div class="wrap" style="max-width:620px">
+    <div class="ok" id="okbox"></div>
+  </div>
+</section>
+
+<section class="view band" id="v-painel">
+  <div class="wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><h1 id="ptitle">Agenda de hoje</h1><button class="ghost" id="sair" hidden>Sair</button></div>
+    <p class="note" id="hoje"></p>
+    <form id="login" class="step" style="max-width:420px;margin-top:18px" hidden>
+      <h3 style="margin-bottom:4px">Entrar no painel</h3>
+      <p class="note" style="margin-top:0">Só barbeiros da casa veem nomes e WhatsApp dos clientes.</p>
+      <label for="email">E-mail</label><input id="email" type="email" autocomplete="username" required>
+      <label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password" required>
+      <p id="loginerr" role="alert" style="color:var(--red);font-weight:600;margin:8px 0"></p>
+      <button class="btn" type="submit">Entrar</button>
+    </form>
+    <div id="painelbody">
+      <div class="stats" id="stats"></div>
+      <div class="filters" id="filt"></div>
+      <p id="painelerr" role="alert" style="color:var(--red);font-weight:600"></p>
+      <ul class="agenda" id="agenda"></ul>
+    </div>
+  </div>
+</section>
+
+<section class="view band" id="v-marca">
+  <div class="wrap">
+    <h1>Marca, nomes e design system</h1>
+    <p style="max-width:62ch">Conceito: a barbearia como o salão de um Jarl, o chefe viking. O cliente não marca horário, ele reserva seu lugar no salão. Serviços viram rituais, a fidelidade vira um cartão de runas e o tom é de saga, sem perder a clareza.</p>
+    <div class="cols" style="margin-top:24px">
+      <div><h2>Nomes sugeridos</h2><ol class="names" id="names"></ol></div>
+      <div><h2>Serviços batizados</h2><div class="scroll"><table><thead><tr><th>Ritual</th><th>O que é</th><th>Preço</th></tr></thead><tbody id="svctab"></tbody></table></div></div>
+    </div>
+    <h2 style="margin-top:32px">Cores</h2>
+    <div class="sw" id="sw"></div>
+    <div class="cols" style="margin-top:32px">
+      <div><h2>Tipografia</h2>
+        <p style="font-family:Grenze,serif;font-size:44px;line-height:1;margin:0">Grenze 800</p><p class="note">Títulos, logo, números grandes. Lembra letra entalhada em madeira.</p>
+        <p style="font-size:20px;margin:14px 0 0">Barlow 400–700</p><p class="note">Textos, botões, formulários. Limpa e legível no celular.</p></div>
+      <div><h2>Tom de voz</h2><ul>
+        <li>"Reservar seu lugar no salão", não "agendar horário".</li>
+        <li>Frases curtas e diretas, como um chefe falando aos seus.</li>
+        <li>Humor de saga com moderação: o tema enfeita, a informação manda.</li>
+        <li>Mensagens de WhatsApp: "Skál, Rafael! Seu lugar está guardado sábado às 10h."</li></ul></div>
+      <div><h2>Elementos</h2><ul>
+        <li>Escudo vermelho com a runa ᛉ (Algiz, proteção) como marca.</li>
+        <li>Runas ᚠ ᛒ ᛞ ᚱ numerando os passos.</li>
+        <li>Cartão de runas para fidelidade.</li>
+        <li>Ilustração do drakkar como cena de capa.</li></ul></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+{
+const CFG=window.JARL_CONFIG||{};
+const ONLINE=!!(CFG.url&&CFG.key&&window.supabase);
+const sb=ONLINE?window.supabase.createClient(CFG.url,CFG.key):null;
+let SVC=[
+ {id:'guerreiro',n:'Corte do Guerreiro',d:'Corte na máquina e tesoura, lavagem e finalização',min:40,p:50},
+ {id:'barba',n:'Barba do Jarl',d:'Barba com toalha quente, navalha e óleo',min:30,p:40},
+ {id:'valhalla',n:'Ritual de Valhalla',d:'Corte + barba + hidromel sem álcool de cortesia',min:70,p:80},
+ {id:'odin',n:'Navalha de Odin',d:'Acabamento completo na navalha',min:30,p:35},
+ {id:'skald',n:'Jovem Skald',d:'Corte infantil até 12 anos',min:30,p:35},
+ {id:'pezinho',n:'Pezinho do Escudeiro',d:'Contorno e acabamento entre cortes',min:15,p:20}];
+let BAR=[{id:'bjorn',n:'Bjorn',r:'Degradê e navalha',c:'#7a3b22'},{id:'leif',n:'Leif',r:'Barbas longas',c:'#2f5563'},{id:'sigrid',n:'Sigrid',r:'Cortes com tesoura',c:'#a4221b'}];
+let SHOP={id:null,abre:'09:00',fecha:'19:00',fechados:[0]};
+const NAMES=[['JARL Barbearia','O chefe viking. Curto, forte, fácil de virar marca e @. Nome usado neste MVP.'],['Barba de Ferro','Direto em português, ótimo para bairro e fachada.'],['Drakkar Barber Club','Clima de clube, bom se tiver cerveja e sinuca.'],['Valhalla Barbearia','Muito conhecido, mas já é usado por várias barbearias.'],['Clã da Navalha','Puxa comunidade e fidelidade.'],['Machado & Navalha','Rústico, cabe bem em placa de madeira.']];
+const COL=[['Fjord','#142229','#efe6d6','Cabeçalho, resumo, fundo escuro'],['Osso','#efe6d6','#1a1714','Fundo claro principal'],['Sangue','#b3261e','#ffffff','Ação, seleção, marca'],['Latão','#c49a52','#142229','Detalhes, runas, fidelidade'],['Ferro','#1a1714','#efe6d6','Texto']];
+const DOW=['dom','seg','ter','qua','qui','sex','sáb'];
+const money=v=>'R$ '+Number(v).toLocaleString('pt-BR');
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const now=new Date();
+const local=d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const today=local(now);
+let seed=7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+let SLOTS=[];
+const mkSlots=()=>{SLOTS=[];const[a]=SHOP.abre.split(':').map(Number),[f]=SHOP.fecha.split(':').map(Number);for(let h=a;h<f;h++){const H=String(h).padStart(2,'0');SLOTS.push(H+':00',H+':30')}};
+mkSlots();
+const days=[];for(let i=0;i<7;i++){const d=new Date(now);d.setDate(d.getDate()+i);days.push(d)}
+const closed=i=>SHOP.fechados.includes(days[i].getDay());
+const dstr=i=>local(days[i]);
+const past=(i,t)=>{if(i!==0)return false;const[h,m]=t.split(':').map(Number);return h*60+m<=now.getHours()*60+now.getMinutes()};
+
+// ---------- camada de dados ----------
+let book=[]; // modo demo
+const occ={}; // cache online: "bar|data" -> Set de horas
+const CLI=['Rafael M.','Diego S.','Thiago A.','Bruno C.','Lucas P.','Marcos V.','Pedro H.','André L.','Felipe R.','Caio N.','Gustavo T.','Vitor B.'];
+const saveDemo=()=>{try{localStorage.setItem('jarl-book',JSON.stringify(book.filter(b=>b.mine)))}catch(e){}};
+function seedDemo(){
+ try{book=JSON.parse(localStorage.getItem('jarl-book')||'[]')}catch(e){book=[]}
+ days.forEach((d,i)=>{if(closed(i))return;BAR.forEach(b=>SLOTS.forEach(t=>{if(rnd()<(i===0?.38:.25)){const s=SVC[Math.floor(rnd()*SVC.length)];book.push({id:'d'+book.length,date:local(d),t,bar:b.id,svc:s.id,nome:CLI[Math.floor(rnd()*CLI.length)],st:'ok'})}}))});
+}
+async function loadShop(){
+ const slug=CFG.slug||'jarl';
+ const {data:b,error}=await sb.from('barbearias').select('id,nome,abre,fecha,dias_fechados').eq('slug',slug).single();
+ if(error)throw error;
+ SHOP={id:b.id,abre:b.abre.slice(0,5),fecha:b.fecha.slice(0,5),fechados:b.dias_fechados||[]};
+ const [bs,ss]=await Promise.all([
+  sb.from('barbeiros').select('id,nome,especialidade,cor').eq('barbearia_id',b.id).eq('ativo',true).order('ordem'),
+  sb.from('servicos').select('id,nome,descricao,duracao_min,preco').eq('barbearia_id',b.id).eq('ativo',true).order('ordem')]);
+ if(bs.error||ss.error)throw bs.error||ss.error;
+ BAR=bs.data.map(x=>({id:x.id,n:x.nome,r:x.especialidade||'',c:x.cor}));
+ SVC=ss.data.map(x=>({id:x.id,n:x.nome,d:x.descricao||'',min:x.duracao_min,p:Number(x.preco)}));
+ mkSlots();
+}
+async function fetchOcc(bar,date){
+ const k=bar+'|'+date;
+ const {data,error}=await sb.rpc('horarios_ocupados',{p_barbeiro:bar,p_data:date});
+ occ[k]=new Set(error?[]:data.map(r=>r.hora.slice(0,5)));
+}
+const taken=(date,bar,t)=>ONLINE?!!occ[bar+'|'+date]?.has(t):book.some(b=>b.date===date&&b.bar===bar&&b.t===t&&b.st!=='cancel');
+
+// ---------- agendamento ----------
+const st={svc:null,bar:null,day:0,t:null,runas:6,busy:false};
+function pickDefaults(){
+ st.svc=(SVC.find(s=>/valhalla/i.test(s.n))||SVC[0])?.id;st.bar=BAR[0]?.id;st.day=0;
+ while(st.day<6&&closed(st.day))st.day++;
+}
+function render(){
+ $('svcs').innerHTML=SVC.map(s=>`<button class="opt" data-svc="${s.id}" aria-pressed="${st.svc===s.id}"><span><b>${esc(s.n)}</b></span><b>${money(s.p)}</b><small>${esc(s.d)} · ${s.min} min</small></button>`).join('');
+ $('barbs').innerHTML=BAR.map(b=>`<button class="opt" data-bar="${b.id}" aria-pressed="${st.bar===b.id}"><span class="av" style="background:${esc(b.c)}">${esc(b.n[0])}</span><b>${esc(b.n)}</b><small style="grid-column:2">${esc(b.r)}</small></button>`).join('');
+ $('days').innerHTML=days.map((d,i)=>`<button class="day" data-day="${i}" aria-pressed="${st.day===i}" ${closed(i)?'disabled':''}>${i===0?'hoje':DOW[d.getDay()]}<b>${d.getDate()}</b></button>`).join('');
+ const date=dstr(st.day);
+ if(closed(st.day)){$('slots').innerHTML='';$('slotnote').textContent='Neste dia o salão descansa.'}
+ else if(ONLINE&&!occ[st.bar+'|'+date]){$('slots').innerHTML='';$('slotnote').textContent='Consultando horários…';fetchOcc(st.bar,date).then(render)}
+ else{
+  let free=0;
+  $('slots').innerHTML=SLOTS.map(t=>{const off=taken(date,st.bar,t)||past(st.day,t);if(!off)free++;return `<button class="slot" data-t="${t}" aria-pressed="${st.t===t}" ${off?'disabled':''}>${t}</button>`}).join('');
+  const b=BAR.find(x=>x.id===st.bar);
+  $('slotnote').textContent=free?`${free} horários livres com ${b?b.n:''}. Riscados já estão ocupados.`:'Sem horários livres neste dia. Tente outro dia ou barbeiro.';
+ }
+ const s=SVC.find(x=>x.id===st.svc),b=BAR.find(x=>x.id===st.bar),d=days[st.day];
+ if(s&&b)$('sumdl').innerHTML=`<dt>Ritual</dt><dd>${esc(s.n)}</dd><dt>Barbeiro</dt><dd>${esc(b.n)}</dd><dt>Dia</dt><dd>${DOW[d.getDay()]}, ${d.getDate()}/${d.getMonth()+1}</dd><dt>Hora</dt><dd>${st.t||'escolha um horário'}</dd><dt>Duração</dt><dd>${s.min} min</dd>`;
+ $('tot').textContent=money(s?s.p:0);
+ $('go').disabled=st.busy||!(st.t&&$('nome').value.trim().length>1&&$('zap').value.replace(/\D/g,'').length>=10);
+ $('go').textContent=st.busy?'Reservando…':'Confirmar reserva';
+ $('runes').innerHTML=Array.from({length:10},(_,i)=>`<span class="${i<st.runas?'f':''}">${'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾ'[i]}</span>`).join('');
+}
+document.addEventListener('click',e=>{
+ const o=e.target.closest('[data-svc],[data-bar],[data-day],[data-t]');if(!o)return;
+ if(o.dataset.svc)st.svc=o.dataset.svc;
+ if(o.dataset.bar){st.bar=o.dataset.bar;st.t=null}
+ if(o.dataset.day){st.day=+o.dataset.day;st.t=null}
+ if(o.dataset.t)st.t=o.dataset.t;
+ $('err').textContent='';render();
+});
+['nome','zap'].forEach(id=>$(id).addEventListener('input',render));
+$('zap').addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,11);if(v.length>6)v=`(${v.slice(0,2)}) ${v.slice(2,v.length-4)}-${v.slice(-4)}`;else if(v.length>2)v=`(${v.slice(0,2)}) ${v.slice(2)}`;e.target.value=v});
+$('go').addEventListener('click',async()=>{
+ const s=SVC.find(x=>x.id===st.svc),b=BAR.find(x=>x.id===st.bar),d=days[st.day],nome=$('nome').value.trim(),zap=$('zap').value,date=dstr(st.day),hora=st.t;
+ if(ONLINE){
+  st.busy=true;render();
+  const {error}=await sb.rpc('criar_reserva',{p_barbeiro:b.id,p_servico:s.id,p_data:date,p_hora:hora,p_nome:nome,p_whatsapp:zap.replace(/\D/g,'')});
+  st.busy=false;
+  if(error){$('err').textContent=error.message||'Não foi possível reservar. Tente de novo.';delete occ[b.id+'|'+date];st.t=null;render();return}
+  delete occ[b.id+'|'+date];
+ }else{
+  book.push({id:'m'+Date.now(),date,t:hora,bar:b.id,svc:s.id,nome,st:'ok',mine:true});saveDemo();
+ }
+ st.runas=Math.min(10,st.runas+1);
+ $('okbox').innerHTML=`<h2>Skál, ${esc(nome.split(' ')[0])}! Seu lugar está guardado.</h2><p><b>${esc(s.n)}</b> com ${esc(b.n)}<br>${DOW[d.getDay()]}, ${d.getDate()}/${d.getMonth()+1} às ${hora} · ${money(s.p)}</p><p>A confirmação vai para o WhatsApp ${esc(zap)}, com um lembrete 2 horas antes.</p><p class="note">No MVP a mensagem de WhatsApp ainda é simulada.</p><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px"><a class="ghost" href="#agendar" style="text-decoration:none;display:inline-flex;align-items:center">Nova reserva</a><a class="ghost" href="#painel" style="text-decoration:none;display:inline-flex;align-items:center">Ver no painel do barbeiro</a></div>`;
+ st.t=null;location.hash='ok';
+});
+
+// ---------- painel ----------
+let fb='all',rows=[],pday=0;
+const MAP={confirmada:'ok',atendida:'done',cancelada:'cancel'},BACK={ok:'confirmada',done:'atendida',cancel:'cancelada'};
+async function loadRows(){
+ if(!ONLINE){rows=book.filter(b=>b.date===dstr(pday)).map(b=>{const s=SVC.find(x=>x.id===b.svc),br=BAR.find(x=>x.id===b.bar);return {...b,svcN:s.n,p:s.p,barN:br.n}});return}
+ const {data,error}=await sb.from('reservas').select('id,hora,cliente_nome,cliente_whatsapp,status,barbeiro_id,servicos(nome,preco),barbeiros(nome)').eq('barbearia_id',SHOP.id).eq('data',dstr(pday)).order('hora');
+ if(error)throw error;
+ rows=data.map(r=>({id:r.id,t:r.hora.slice(0,5),nome:r.cliente_nome,zap:r.cliente_whatsapp,st:MAP[r.status],bar:r.barbeiro_id,svcN:r.servicos?.nome||'',p:Number(r.servicos?.preco||0),barN:r.barbeiros?.nome||''}));
+}
+async function panel(){
+ pday=0;while(pday<6&&closed(pday))pday++;const pd=days[pday];
+ $('ptitle').textContent=pday===0?'Agenda de hoje':`Agenda de ${DOW[pd.getDay()]}, ${pd.getDate()}/${pd.getMonth()+1}`;
+ $('hoje').textContent=pday===0?`${DOW[now.getDay()]}, ${now.toLocaleDateString('pt-BR')}`:'Hoje o salão está fechado. Mostrando o próximo dia de atendimento.';
+ if(ONLINE){
+  const {data:{session}}=await sb.auth.getSession();
+  $('login').hidden=!!session;$('painelbody').hidden=!session;$('sair').hidden=!session;
+  if(!session)return;
+ }
+ try{await loadRows()}catch(e){$('agenda').innerHTML=`<li><span></span><span>Erro ao carregar: ${esc(e.message)}</span></li>`;return}
+ drawPanel();
+}
+function drawPanel(){
+ const list=rows.filter(b=>fb==='all'||b.bar===fb).sort((a,b)=>a.t.localeCompare(b.t));
+ const act=list.filter(b=>b.st!=='cancel');
+ const fat=act.reduce((a,b)=>a+b.p,0),done=list.filter(b=>b.st==='done').length;
+ const next=act.find(b=>b.st==='ok'&&!past(pday,b.t));
+ $('stats').innerHTML=`<div class="stat"><b>${act.length}</b><span>reservas no dia</span></div><div class="stat"><b>${money(fat)}</b><span>faturamento previsto</span></div><div class="stat"><b>${done}</b><span>atendidos</span></div><div class="stat"><b>${next?next.t:'—'}</b><span>próximo cliente${next?': '+esc(next.nome):''}</span></div>`;
+ $('filt').innerHTML=[['all','Todos']].concat(BAR.map(b=>[b.id,b.n])).map(([k,n])=>`<button class="ghost" data-f="${k}" style="${fb===k?'background:var(--ink);color:var(--bg)':''}">${esc(n)}</button>`).join('');
+ $('agenda').innerHTML=list.length?list.map(b=>`<li class="${b.st}"><span class="t">${b.t}</span><span class="who"><b>${esc(b.nome)}</b>${b.mine?' <span class="tag" style="background:var(--red);color:#fff">novo</span>':''}<small>${esc(b.svcN)} · ${esc(b.barN)} · ${money(b.p)}${b.zap?' · '+esc(b.zap):''}</small></span><span class="act">${b.st==='ok'?`<button class="ghost" data-set="done" data-id="${b.id}">Atendido</button><button class="ghost" data-set="cancel" data-id="${b.id}">Cancelar</button>`:`<span class="tag" style="border:1px solid var(--line)">${b.st==='done'?'atendido':'cancelado'}</span><button class="ghost" data-set="ok" data-id="${b.id}">Desfazer</button>`}</span></li>`).join(''):'<li><span></span><span>Nenhuma reserva hoje para este filtro.</span></li>';
+}
+document.addEventListener('click',async e=>{
+ const t=e.target;
+ if(t.dataset.f){fb=t.dataset.f;drawPanel()}
+ if(t.dataset.set){
+  const r=rows.find(x=>String(x.id)===t.dataset.id);if(!r)return;
+  if(ONLINE){const {error}=await sb.from('reservas').update({status:BACK[t.dataset.set]}).eq('id',r.id);if(error){alertBox(error.message);return}}
+  else{const b=book.find(x=>x.id===r.id);if(b){b.st=t.dataset.set;saveDemo()}}
+  r.st=t.dataset.set;drawPanel();
+ }
+});
+const alertBox=m=>{$('painelerr').textContent=m};
+$('login').addEventListener('submit',async e=>{
+ e.preventDefault();$('loginerr').textContent='';
+ const {error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('senha').value});
+ if(error){$('loginerr').textContent='E-mail ou senha incorretos.';return}
+ panel();
+});
+$('sair').addEventListener('click',async()=>{await sb.auth.signOut();panel()});
+
+// ---------- marca ----------
+$('names').innerHTML=NAMES.map(([n,d])=>`<li><b>${n}</b><br>${d}</li>`).join('');
+const drawSvcTab=()=>{$('svctab').innerHTML=SVC.map(s=>`<tr><td><b>${esc(s.n)}</b></td><td>${esc(s.d)}</td><td class="n">${money(s.p)}</td></tr>`).join('')};
+$('sw').innerHTML=COL.map(([n,bg,fg,u])=>`<div style="background:${bg};color:${fg}"><b>${n}</b>${bg}<span style="opacity:.8">${u}</span></div>`).join('');
+
+// ---------- rotas ----------
+const VIEWS={agendar:'v-agendar',ok:'v-ok',painel:'v-painel',marca:'v-marca'};
+function route(){
+ let h=location.hash.slice(1);if(!VIEWS[h]||(h==='ok'&&!$('okbox').innerHTML))h='agendar';
+ Object.entries(VIEWS).forEach(([k,v])=>$(v).classList.toggle('on',k===h));
+ document.querySelectorAll('nav a').forEach(a=>{if(a.getAttribute('href')==='#'+h)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+ document.querySelector('.hero').style.display=h==='agendar'?'':'none';
+ if(h==='painel')panel();
+ if(h==='agendar')render();
+ window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',route);
+async function boot(){
+ $('modo').textContent=ONLINE?'Conectado ao banco: reservas reais.':'Modo demonstração: horários e clientes de exemplo, salvos só neste navegador.';
+ if(ONLINE){
+  try{await loadShop()}catch(e){$('modo').textContent='Não foi possível conectar ao banco. '+e.message;return}
+ }else{
+  $('login').hidden=true;$('sair').hidden=true;$('painelbody').hidden=false;seedDemo();
+ }
+ pickDefaults();drawSvcTab();route();
+}
+boot();
+}
+</script>
+</body>
+</html>
